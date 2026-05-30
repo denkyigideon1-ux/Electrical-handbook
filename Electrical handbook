@@ -1,0 +1,558 @@
+import { useState } from "react";
+
+const categories = [
+  {
+    id: "ohms",
+    icon: "âš¡",
+    title: "Ohm's Law",
+    color: "#F59E0B",
+    sections: [
+      {
+        title: "The Triangle",
+        content: "V = I Ã— R   |   I = V Ã· R   |   R = V Ã· I",
+        type: "formula-big",
+      },
+      {
+        title: "Variables",
+        type: "table",
+        rows: [
+          ["Symbol", "Quantity", "Unit"],
+          ["V", "Voltage", "Volts (V)"],
+          ["I", "Current", "Amperes (A)"],
+          ["R", "Resistance", "Ohms (Î©)"],
+        ],
+      },
+      {
+        title: "Example",
+        content: "A 12V battery powers a 4Î© resistor.\nI = 12 Ã· 4 = 3 A",
+        type: "example",
+      },
+    ],
+  },
+  {
+    id: "power",
+    icon: "ðŸ”‹",
+    title: "Power Formulas",
+    color: "#10B981",
+    sections: [
+      {
+        title: "Power Equations",
+        type: "formula-list",
+        items: [
+          "P = V Ã— I",
+          "P = IÂ² Ã— R",
+          "P = VÂ² Ã· R",
+        ],
+      },
+      {
+        title: "Variables",
+        type: "table",
+        rows: [
+          ["Symbol", "Quantity", "Unit"],
+          ["P", "Power", "Watts (W)"],
+          ["V", "Voltage", "Volts (V)"],
+          ["I", "Current", "Amperes (A)"],
+          ["R", "Resistance", "Ohms (Î©)"],
+        ],
+      },
+      {
+        title: "Example",
+        content: "A 240V appliance draws 5A.\nP = 240 Ã— 5 = 1200 W = 1.2 kW",
+        type: "example",
+      },
+    ],
+  },
+  {
+    id: "series",
+    icon: "âž¡ï¸",
+    title: "Series Circuits",
+    color: "#3B82F6",
+    sections: [
+      {
+        title: "Key Rules",
+        type: "rules",
+        items: [
+          "Current is the SAME throughout",
+          "Voltages ADD up across components",
+          "Resistances ADD together",
+        ],
+      },
+      {
+        title: "Formulas",
+        type: "formula-list",
+        items: [
+          "R_total = Râ‚ + Râ‚‚ + Râ‚ƒ + ...",
+          "V_total = Vâ‚ + Vâ‚‚ + Vâ‚ƒ + ...",
+          "I_total = Iâ‚ = Iâ‚‚ = Iâ‚ƒ",
+        ],
+      },
+      {
+        title: "Example",
+        content: "Râ‚=2Î©, Râ‚‚=3Î©, Râ‚ƒ=5Î© in series.\nR_total = 2+3+5 = 10 Î©",
+        type: "example",
+      },
+    ],
+  },
+  {
+    id: "parallel",
+    icon: "â¬‡ï¸",
+    title: "Parallel Circuits",
+    color: "#8B5CF6",
+    sections: [
+      {
+        title: "Key Rules",
+        type: "rules",
+        items: [
+          "Voltage is the SAME across all branches",
+          "Currents ADD up at junctions",
+          "Total resistance is LESS than smallest R",
+        ],
+      },
+      {
+        title: "Formulas",
+        type: "formula-list",
+        items: [
+          "1/R_total = 1/Râ‚ + 1/Râ‚‚ + 1/Râ‚ƒ",
+          "I_total = Iâ‚ + Iâ‚‚ + Iâ‚ƒ",
+          "V_total = Vâ‚ = Vâ‚‚ = Vâ‚ƒ",
+        ],
+      },
+      {
+        title: "Example",
+        content: "Râ‚=6Î©, Râ‚‚=3Î© in parallel.\n1/R = 1/6 + 1/3 = 1/6 + 2/6 = 3/6\nR_total = 2 Î©",
+        type: "example",
+      },
+    ],
+  },
+  {
+    id: "ac",
+    icon: "ã€°ï¸",
+    title: "AC Fundamentals",
+    color: "#EF4444",
+    sections: [
+      {
+        title: "Key Formulas",
+        type: "formula-list",
+        items: [
+          "f = 1 Ã· T  (frequency)",
+          "V_rms = V_peak Ã· âˆš2 â‰ˆ 0.707 Ã— V_peak",
+          "I_rms = I_peak Ã· âˆš2",
+          "X_L = 2Ï€fL  (inductive reactance)",
+          "X_C = 1 Ã· (2Ï€fC)  (capacitive reactance)",
+        ],
+      },
+      {
+        title: "Variables",
+        type: "table",
+        rows: [
+          ["Symbol", "Meaning", "Unit"],
+          ["f", "Frequency", "Hertz (Hz)"],
+          ["T", "Period", "Seconds (s)"],
+          ["X_L", "Inductive Reactance", "Ohms (Î©)"],
+          ["X_C", "Capacitive Reactance", "Ohms (Î©)"],
+          ["L", "Inductance", "Henries (H)"],
+          ["C", "Capacitance", "Farads (F)"],
+        ],
+      },
+      {
+        title: "Standard Values",
+        type: "rules",
+        items: [
+          "US/Canada mains: 120V / 60Hz",
+          "UK/Europe mains: 230V / 50Hz",
+          "V_rms of 120V peak â‰ˆ 84.9V",
+        ],
+      },
+    ],
+  },
+  {
+    id: "units",
+    icon: "ðŸ“",
+    title: "Units & Prefixes",
+    color: "#06B6D4",
+    sections: [
+      {
+        title: "SI Prefixes",
+        type: "table",
+        rows: [
+          ["Prefix", "Symbol", "Factor"],
+          ["Mega", "M", "Ã— 1,000,000"],
+          ["Kilo", "k", "Ã— 1,000"],
+          ["Milli", "m", "Ã· 1,000"],
+          ["Micro", "Î¼", "Ã· 1,000,000"],
+          ["Nano", "n", "Ã· 1,000,000,000"],
+          ["Pico", "p", "Ã· 1,000,000,000,000"],
+        ],
+      },
+      {
+        title: "Common Units",
+        type: "table",
+        rows: [
+          ["Quantity", "Unit", "Symbol"],
+          ["Voltage", "Volt", "V"],
+          ["Current", "Ampere", "A"],
+          ["Resistance", "Ohm", "Î©"],
+          ["Power", "Watt", "W"],
+          ["Energy", "Joule / kWh", "J / kWh"],
+          ["Frequency", "Hertz", "Hz"],
+          ["Capacitance", "Farad", "F"],
+          ["Inductance", "Henry", "H"],
+          ["Charge", "Coulomb", "C"],
+        ],
+      },
+    ],
+  },
+  {
+    id: "colour",
+    icon: "ðŸŒˆ",
+    title: "Resistor Color Code",
+    color: "#F97316",
+    sections: [
+      {
+        title: "Band Colors & Values",
+        type: "color-table",
+        rows: [
+          { color: "#000", label: "Black", value: "0", mult: "Ã—1" },
+          { color: "#8B4513", label: "Brown", value: "1", mult: "Ã—10" },
+          { color: "#FF0000", label: "Red", value: "2", mult: "Ã—100" },
+          { color: "#FF7F00", label: "Orange", value: "3", mult: "Ã—1k" },
+          { color: "#FFD700", label: "Yellow", value: "4", mult: "Ã—10k" },
+          { color: "#228B22", label: "Green", value: "5", mult: "Ã—100k" },
+          { color: "#0000FF", label: "Blue", value: "6", mult: "Ã—1M" },
+          { color: "#8B008B", label: "Violet", value: "7", mult: "Ã—10M" },
+          { color: "#808080", label: "Grey", value: "8", mult: "â€”" },
+          { color: "#FFFFFF", label: "White", value: "9", mult: "â€”" },
+          { color: "#FFD700", label: "Gold", value: "â€”", mult: "Ã—0.1", tol: "Â±5%" },
+          { color: "#C0C0C0", label: "Silver", value: "â€”", mult: "Ã—0.01", tol: "Â±10%" },
+        ],
+      },
+      {
+        title: "Mnemonic",
+        content: "Bad Boys Race Our Young Girls But Violet Generally Wins",
+        type: "mnemonic",
+      },
+    ],
+  },
+  {
+    id: "safety",
+    icon: "âš ï¸",
+    title: "Safety Basics",
+    color: "#DC2626",
+    sections: [
+      {
+        title: "Current Effects on Human Body",
+        type: "table",
+        rows: [
+          ["Current (mA)", "Effect"],
+          ["1 mA", "Barely perceptible"],
+          ["5 mA", "Mild shock"],
+          ["10â€“20 mA", "Cannot let go (freeze)"],
+          ["50â€“150 mA", "Respiratory arrest, severe burns"],
+          ["1â€“4.3 A", "Ventricular fibrillation (fatal)"],
+          [">10 A", "Cardiac arrest, severe burns"],
+        ],
+      },
+      {
+        title: "Golden Rules",
+        type: "rules",
+        items: [
+          "Always de-energize before working â€” LOTO",
+          "Test before you touch with a meter",
+          "One hand in pocket near live panels",
+          "Never bypass safety devices",
+          "Assume ALL conductors are live",
+          "Know where the main disconnect is",
+        ],
+      },
+    ],
+  },
+];
+
+const Calculator = () => {
+  const [mode, setMode] = useState("ohm");
+  const [vals, setVals] = useState({ V: "", I: "", R: "", P: "" });
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
+
+  const set = (k, v) => setVals(prev => ({ ...prev, [k]: v }));
+
+  const solve = () => {
+    setError("");
+    setResult(null);
+    const n = {};
+    for (const k of ["V", "I", "R", "P"]) {
+      if (vals[k] !== "") {
+        const parsed = parseFloat(vals[k]);
+        if (isNaN(parsed) || parsed < 0) { setError("Enter valid positive numbers."); return; }
+        n[k] = parsed;
+      }
+    }
+    const known = Object.keys(n);
+    if (known.length < 2) { setError("Enter at least 2 known values."); return; }
+
+    let V = n.V, I = n.I, R = n.R, P = n.P;
+
+    if (V !== undefined && I !== undefined) { R = R ?? V / I; P = P ?? V * I; }
+    else if (V !== undefined && R !== undefined) { I = I ?? V / R; P = P ?? V * V / R; }
+    else if (I !== undefined && R !== undefined) { V = V ?? I * R; P = P ?? I * I * R; }
+    else if (P !== undefined && V !== undefined) { I = I ?? P / V; R = R ?? V * V / P; }
+    else if (P !== undefined && I !== undefined) { V = V ?? P / I; R = R ?? P / (I * I); }
+    else if (P !== undefined && R !== undefined) { I = I ?? Math.sqrt(P / R); V = V ?? Math.sqrt(P * R); }
+    else { setError("Cannot solve with these two values alone."); return; }
+
+    const fmt = x => x !== undefined ? (Math.round(x * 10000) / 10000).toString() : "â€”";
+    setResult({ V: fmt(V), I: fmt(I), R: fmt(R), P: fmt(P) });
+  };
+
+  const reset = () => { setVals({ V: "", I: "", R: "", P: "" }); setResult(null); setError(""); };
+
+  return (
+    <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 16, padding: 24, marginTop: 8 }}>
+      <p style={{ color: "#94A3B8", fontSize: 13, marginBottom: 16 }}>
+        Enter any 2 known values â€” the rest will be calculated.
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+        {[["V", "Voltage (V)", "Volts"], ["I", "Current (I)", "Amps"], ["R", "Resistance (R)", "Ohms"], ["P", "Power (P)", "Watts"]].map(([k, label, unit]) => (
+          <div key={k}>
+            <label style={{ color: "#94A3B8", fontSize: 12, display: "block", marginBottom: 4 }}>{label}</label>
+            <div style={{ display: "flex", alignItems: "center", background: "rgba(255,255,255,0.06)", borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <input
+                type="number"
+                value={vals[k]}
+                onChange={e => set(k, e.target.value)}
+                placeholder="?"
+                style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "#F1F5F9", padding: "10px 12px", fontSize: 15 }}
+              />
+              <span style={{ color: "#64748B", fontSize: 12, paddingRight: 10 }}>{unit}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+        <button onClick={solve} style={{ flex: 1, background: "#F59E0B", color: "#000", border: "none", borderRadius: 8, padding: "11px 0", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "inherit" }}>
+          Calculate âš¡
+        </button>
+        <button onClick={reset} style={{ background: "rgba(255,255,255,0.08)", color: "#94A3B8", border: "none", borderRadius: 8, padding: "11px 18px", cursor: "pointer", fontFamily: "inherit" }}>
+          Reset
+        </button>
+      </div>
+      {error && <p style={{ color: "#EF4444", fontSize: 13, marginBottom: 12 }}>âš ï¸ {error}</p>}
+      {result && (
+        <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 12, padding: 16 }}>
+          <p style={{ color: "#F59E0B", fontWeight: 700, marginBottom: 12, fontSize: 13 }}>RESULTS</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {[["V", "Voltage", "V"], ["I", "Current", "A"], ["R", "Resistance", "Î©"], ["P", "Power", "W"]].map(([k, label, unit]) => (
+              <div key={k} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "10px 14px" }}>
+                <div style={{ color: "#64748B", fontSize: 11, marginBottom: 2 }}>{label}</div>
+                <div style={{ color: "#F1F5F9", fontSize: 18, fontWeight: 700 }}>{result[k]} <span style={{ fontSize: 12, color: "#94A3B8" }}>{unit}</span></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Section = ({ section }) => {
+  if (section.type === "formula-big") return (
+    <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "18px 20px", marginBottom: 14 }}>
+      <p style={{ color: "#94A3B8", fontSize: 11, marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>{section.title}</p>
+      <p style={{ color: "#F1F5F9", fontFamily: "'Courier New', monospace", fontSize: 17, fontWeight: 700, letterSpacing: 1 }}>{section.content}</p>
+    </div>
+  );
+
+  if (section.type === "formula-list") return (
+    <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "16px 20px", marginBottom: 14 }}>
+      <p style={{ color: "#94A3B8", fontSize: 11, marginBottom: 10, textTransform: "uppercase", letterSpacing: 1 }}>{section.title}</p>
+      {section.items.map((f, i) => (
+        <p key={i} style={{ color: "#F1F5F9", fontFamily: "'Courier New', monospace", fontSize: 15, marginBottom: 6, paddingLeft: 8, borderLeft: "2px solid rgba(255,255,255,0.15)" }}>{f}</p>
+      ))}
+    </div>
+  );
+
+  if (section.type === "table") return (
+    <div style={{ marginBottom: 14 }}>
+      <p style={{ color: "#94A3B8", fontSize: 11, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>{section.title}</p>
+      <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+        {section.rows.map((row, i) => (
+          <div key={i} style={{ display: "grid", gridTemplateColumns: `repeat(${row.length}, 1fr)`, background: i === 0 ? "rgba(255,255,255,0.07)" : i % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent" }}>
+            {row.map((cell, j) => (
+              <div key={j} style={{ padding: "9px 12px", color: i === 0 ? "#94A3B8" : "#E2E8F0", fontSize: i === 0 ? 11 : 13, fontWeight: i === 0 ? 600 : 400, borderRight: j < row.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none", fontFamily: i > 0 && j === 0 ? "'Courier New', monospace" : "inherit" }}>
+                {cell}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (section.type === "rules") return (
+    <div style={{ marginBottom: 14 }}>
+      <p style={{ color: "#94A3B8", fontSize: 11, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>{section.title}</p>
+      {section.items.map((item, i) => (
+        <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 8, background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "9px 12px" }}>
+          <span style={{ color: "#F59E0B", fontWeight: 700, fontSize: 13, flexShrink: 0 }}>â†’</span>
+          <p style={{ color: "#E2E8F0", fontSize: 14, margin: 0 }}>{item}</p>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (section.type === "example") return (
+    <div style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+      <p style={{ color: "#10B981", fontSize: 11, marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>ðŸ“ {section.title}</p>
+      <pre style={{ color: "#E2E8F0", fontFamily: "'Courier New', monospace", fontSize: 13, margin: 0, whiteSpace: "pre-wrap" }}>{section.content}</pre>
+    </div>
+  );
+
+  if (section.type === "mnemonic") return (
+    <div style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+      <p style={{ color: "#F97316", fontSize: 11, marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>ðŸ’¡ Memory Trick</p>
+      <p style={{ color: "#E2E8F0", fontSize: 14, margin: 0, fontStyle: "italic" }}>{section.content}</p>
+    </div>
+  );
+
+  if (section.type === "color-table") return (
+    <div style={{ marginBottom: 14 }}>
+      <p style={{ color: "#94A3B8", fontSize: 11, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>{section.title}</p>
+      <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "28px 1fr 60px 60px 60px", background: "rgba(255,255,255,0.07)", padding: "8px 12px" }}>
+          {["", "Color", "Digit", "Mult.", "Tol."].map((h, i) => <span key={i} style={{ color: "#94A3B8", fontSize: 11, fontWeight: 600 }}>{h}</span>)}
+        </div>
+        {section.rows.map((row, i) => (
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "28px 1fr 60px 60px 60px", alignItems: "center", padding: "7px 12px", background: i % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ width: 16, height: 16, borderRadius: 3, background: row.color, border: row.label === "White" ? "1px solid rgba(255,255,255,0.3)" : "none" }} />
+            <span style={{ color: "#E2E8F0", fontSize: 13 }}>{row.label}</span>
+            <span style={{ color: "#F1F5F9", fontFamily: "'Courier New', monospace", fontSize: 13 }}>{row.value}</span>
+            <span style={{ color: "#94A3B8", fontSize: 12 }}>{row.mult}</span>
+            <span style={{ color: "#94A3B8", fontSize: 12 }}>{row.tol ?? ""}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return null;
+};
+
+export default function ElectricalHandbook() {
+  const [activeId, setActiveId] = useState("ohms");
+  const [showCalc, setShowCalc] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const active = categories.find(c => c.id === activeId);
+
+  const filtered = search.trim()
+    ? categories.filter(c =>
+        c.title.toLowerCase().includes(search.toLowerCase()) ||
+        c.sections.some(s =>
+          (s.title || "").toLowerCase().includes(search.toLowerCase()) ||
+          (s.content || "").toLowerCase().includes(search.toLowerCase()) ||
+          (s.items || []).some(i => i.toLowerCase().includes(search.toLowerCase()))
+        )
+      )
+    : categories;
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#0B1120", color: "#F1F5F9", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+      {/* Header */}
+      <div style={{ background: "linear-gradient(135deg, #0F1E3C 0%, #0B1120 100%)", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "20px 20px 16px" }}>
+        <div style={{ maxWidth: 680, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+            <div style={{ width: 36, height: 36, background: "#F59E0B", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>âš¡</div>
+            <div>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px" }}>Electrical Handbook</h1>
+              <p style={{ margin: 0, color: "#64748B", fontSize: 12 }}>Beginner Reference & Formulas</p>
+            </div>
+          </div>
+          {/* Search */}
+          <div style={{ marginTop: 16, display: "flex", alignItems: "center", background: "rgba(255,255,255,0.06)", borderRadius: 10, padding: "0 14px", border: "1px solid rgba(255,255,255,0.09)" }}>
+            <span style={{ color: "#64748B", marginRight: 8, fontSize: 16 }}>ðŸ”</span>
+            <input
+              type="text"
+              placeholder="Search topics..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "#F1F5F9", padding: "12px 0", fontSize: 14 }}
+            />
+            {search && <button onClick={() => setSearch("")} style={{ color: "#64748B", background: "none", border: "none", cursor: "pointer", fontSize: 18 }}>Ã—</button>}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "0 0 40px" }}>
+        {/* Calculator Banner */}
+        <div
+          onClick={() => setShowCalc(v => !v)}
+          style={{ margin: "16px 16px 0", background: "linear-gradient(135deg, #1C1206 0%, #2D1E06 100%)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 14, padding: "14px 18px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+        >
+          <div>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: "#F59E0B" }}>âš¡ Ohm's Law Calculator</p>
+            <p style={{ margin: 0, color: "#78716C", fontSize: 12, marginTop: 2 }}>Tap to {showCalc ? "hide" : "open"} the interactive calculator</p>
+          </div>
+          <span style={{ color: "#F59E0B", fontSize: 20 }}>{showCalc ? "â–²" : "â–¼"}</span>
+        </div>
+
+        {showCalc && (
+          <div style={{ margin: "0 16px" }}>
+            <Calculator />
+          </div>
+        )}
+
+        {/* Category Tabs */}
+        <div style={{ overflowX: "auto", padding: "16px 16px 0" }}>
+          <div style={{ display: "flex", gap: 8, width: "max-content" }}>
+            {(search ? filtered : categories).map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => { setActiveId(cat.id); setSearch(""); }}
+                style={{
+                  background: activeId === cat.id ? cat.color : "rgba(255,255,255,0.05)",
+                  color: activeId === cat.id ? "#000" : "#94A3B8",
+                  border: "none", borderRadius: 8, padding: "8px 14px",
+                  fontWeight: activeId === cat.id ? 700 : 500, fontSize: 13,
+                  cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
+                  transition: "all 0.15s"
+                }}
+              >
+                {cat.icon} {cat.title}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: "16px 16px 0" }}>
+          {(search ? filtered : [active]).map(cat => cat && (
+            <div key={cat.id}>
+              {search && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, marginTop: 8 }}>
+                  <div style={{ width: 28, height: 28, background: cat.color, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>{cat.icon}</div>
+                  <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{cat.title}</h2>
+                </div>
+              )}
+              {cat.sections.map((section, i) => (
+                <Section key={i} section={section} />
+              ))}
+              {search && <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "20px 0" }} />}
+            </div>
+          ))}
+
+          {search && filtered.length === 0 && (
+            <div style={{ textAlign: "center", padding: "40px 0", color: "#64748B" }}>
+              <p style={{ fontSize: 32 }}>ðŸ”</p>
+              <p>No results for "<strong style={{ color: "#94A3B8" }}>{search}</strong>"</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <p style={{ textAlign: "center", color: "#334155", fontSize: 12, marginTop: 32 }}>
+          âš¡ Electrical Handbook Â· Student Reference Edition
+        </p>
+      </div>
+    </div>
+  );
+}
