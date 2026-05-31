@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Electrical Handbook</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0B1120;color:#F1F5F9;font-family:'Barlow',sans-serif;min-height:100vh}
+input,button{font-family:'Barlow',sans-serif}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:#0B1120}
+::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const categories = [
+  {
+    id:"ohms",icon:"⚡",title:"Ohm's Law",color:"#F59E0B",
+    sections:[
+      {title:"The Triangle",content:"V = I × R   |   I = V ÷ R   |   R = V ÷ I",type:"formula-big"},
+      {title:"Variables",type:"table",rows:[["Symbol","Quantity","Unit"],["V","Voltage","Volts (V)"],["I","Current","Amperes (A)"],["R","Resistance","Ohms (Ω)"]]},
+      {title:"Example",content:"A 12V battery powers a 4Ω resistor.\nI = 12 ÷ 4 = 3 A",type:"example"}
+    ]
+  },
+  {
+    id:"power",icon:"🔋",title:"Power Formulas",color:"#10B981",
+    sections:[
+      {title:"Power Equations",type:"formula-list",items:["P = V × I","P = I² × R","P = V² ÷ R"]},
+      {title:"Variables",type:"table",rows:[["Symbol","Quantity","Unit"],["P","Power","Watts (W)"],["V","Voltage","Volts (V)"],["I","Current","Amperes (A)"],["R","Resistance","Ohms (Ω)"]]},
+      {title:"Example",content:"A 240V appliance draws 5A.\nP = 240 × 5 = 1200 W = 1.2 kW",type:"example"}
+    ]
+  },
+  {
+    id:"series",icon:"➡️",title:"Series Circuits",color:"#3B82F6",
+    sections:[
+      {title:"Key Rules",type:"rules",items:["Current is the SAME throughout","Voltages ADD up across components","Resistances ADD together"]},
+      {title:"Formulas",type:"formula-list",items:["R_total = R₁ + R₂ + R₃ + ...","V_total = V₁ + V₂ + V₃ + ...","I_total = I₁ = I₂ = I₃"]},
+      {title:"Example",content:"R₁=2Ω, R₂=3Ω, R₃=5Ω in series.\nR_total = 2+3+5 = 10 Ω",type:"example"}
+    ]
+  },
+  {
+    id:"parallel",icon:"⬇️",title:"Parallel Circuits",color:"#8B5CF6",
+    sections:[
+      {title:"Key Rules",type:"rules",items:["Voltage is the SAME across all branches","Currents ADD up at junctions","Total resistance is LESS than smallest R"]},
+      {title:"Formulas",type:"formula-list",items:["1/R_total = 1/R₁ + 1/R₂ + 1/R₃","I_total = I₁ + I₂ + I₃","V_total = V₁ = V₂ = V₃"]},
+      {title:"Example",content:"R₁=6Ω, R₂=3Ω in parallel.\n1/R = 1/6 + 1/3 = 3/6\nR_total = 2 Ω",type:"example"}
+    ]
+  },
+  {
+    id:"ac",icon:"〰️",title:"AC Fundamentals",color:"#EF4444",
+    sections:[
+      {title:"Key Formulas",type:"formula-list",items:["f = 1 ÷ T  (frequency)","V_rms = V_peak ÷ √2 ≈ 0.707 × V_peak","I_rms = I_peak ÷ √2","X_L = 2πfL  (inductive reactance)","X_C = 1 ÷ (2πfC)  (capacitive reactance)"]},
+      {title:"Standard Values",type:"rules",items:["US/Canada mains: 120V / 60Hz","UK/Europe mains: 230V / 50Hz","V_rms of 120V peak ≈ 84.9V"]}
+    ]
+  },
+  {
+    id:"units",icon:"📐",title:"Units & Prefixes",color:"#06B6D4",
+    sections:[
+      {title:"SI Prefixes",type:"table",rows:[["Prefix","Symbol","Factor"],["Mega","M","× 1,000,000"],["Kilo","k","× 1,000"],["Milli","m","÷ 1,000"],["Micro","μ","÷ 1,000,000"],["Nano","n","÷ 1,000,000,000"]]},
+      {title:"Common Units",type:"table",rows:[["Quantity","Unit","Symbol"],["Voltage","Volt","V"],["Current","Ampere","A"],["Resistance","Ohm","Ω"],["Power","Watt","W"],["Frequency","Hertz","Hz"],["Capacitance","Farad","F"],["Inductance","Henry","H"]]}
+    ]
+  },
+  {
+    id:"colour",icon:"🌈",title:"Resistor Colors",color:"#F97316",
+    sections:[
+      {title:"Band Colors & Values",type:"color-table",rows:[
+        {color:"#111",label:"Black",value:"0",mult:"×1"},
+        {color:"#8B4513",label:"Brown",value:"1",mult:"×10"},
+        {color:"#FF0000",label:"Red",value:"2",mult:"×100"},
+        {color:"#FF7F00",label:"Orange",value:"3",mult:"×1k"},
+        {color:"#FFD700",label:"Yellow",value:"4",mult:"×10k"},
+        {color:"#228B22",label:"Green",value:"5",mult:"×100k"},
+        {color:"#0000FF",label:"Blue",value:"6",mult:"×1M"},
+        {color:"#8B008B",label:"Violet",value:"7",mult:"×10M"},
+        {color:"#888",label:"Grey",value:"8",mult:"—"},
+        {color:"#EEE",label:"White",value:"9",mult:"—"},
+        {color:"#FFD700",label:"Gold",value:"—",mult:"×0.1",tol:"±5%"},
+        {color:"#C0C0C0",label:"Silver",value:"—",mult:"×0.01",tol:"±10%"},
+      ]},
+      {title:"Mnemonic",content:"Bad Boys Race Our Young Girls But Violet Generally Wins",type:"mnemonic"}
+    ]
+  },
+  {
+    id:"safety",icon:"⚠️",title:"Safety Basics",color:"#DC2626",
+    sections:[
+      {title:"Current Effects on Body",type:"table",rows:[["Current","Effect"],["1 mA","Barely perceptible"],["5 mA","Mild shock"],["10–20 mA","Cannot let go"],["50–150 mA","Respiratory arrest"],["1–4.3 A","Ventricular fibrillation"],[">10 A","Cardiac arrest"]]},
+      {title:"Golden Rules",type:"rules",items:["Always de-energize before working — LOTO","Test before you touch with a meter","One hand in pocket near live panels","Never bypass safety devices","Assume ALL conductors are live","Know where the main disconnect is"]}
+    ]
+  }
+];
+
+function Section({section}){
+  const mono={fontFamily:"'Share Tech Mono',monospace"};
+  if(section.type==="formula-big") return(
+    <div style={{background:"rgba(255,255,255,0.04)",borderRadius:12,padding:"16px 18px",marginBottom:12}}>
+      <p style={{color:"#64748B",fontSize:11,marginBottom:6,textTransform:"uppercase",letterSpacing:1}}>{section.title}</p>
+      <p style={{...mono,color:"#F1F5F9",fontSize:16,fontWeight:700}}>{section.content}</p>
+    </div>
+  );
+  if(section.type==="formula-list") return(
+    <div style={{background:"rgba(255,255,255,0.04)",borderRadius:12,padding:"14px 18px",marginBottom:12}}>
+      <p style={{color:"#64748B",fontSize:11,marginBottom:8,textTransform:"uppercase",letterSpacing:1}}>{section.title}</p>
+      {section.items.map((f,i)=><p key={i} style={{...mono,color:"#F1F5F9",fontSize:14,marginBottom:5,paddingLeft:8,borderLeft:"2px solid rgba(255,255,255,0.15)"}}>{f}</p>)}
+    </div>
+  );
+  if(section.type==="table") return(
+    <div style={{marginBottom:12}}>
+      <p style={{color:"#64748B",fontSize:11,marginBottom:6,textTransform:"uppercase",letterSpacing:1}}>{section.title}</p>
+      <div style={{borderRadius:10,overflow:"hidden",border:"1px solid rgba(255,255,255,0.08)"}}>
+        {section.rows.map((row,i)=>(
+          <div key={i} style={{display:"grid",gridTemplateColumns:`repeat(${row.length},1fr)`,background:i===0?"rgba(255,255,255,0.07)":i%2===0?"rgba(255,255,255,0.02)":"transparent"}}>
+            {row.map((cell,j)=>(
+              <div key={j} style={{padding:"8px 10px",color:i===0?"#94A3B8":"#E2E8F0",fontSize:i===0?11:13,fontWeight:i===0?600:400,borderRight:j<row.length-1?"1px solid rgba(255,255,255,0.06)":"none"}}>{cell}</div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  if(section.type==="rules") return(
+    <div style={{marginBottom:12}}>
+      <p style={{color:"#64748B",fontSize:11,marginBottom:6,textTransform:"uppercase",letterSpacing:1}}>{section.title}</p>
+      {section.items.map((item,i)=>(
+        <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:6,background:"rgba(255,255,255,0.03)",borderRadius:8,padding:"8px 10px"}}>
+          <span style={{color:"#F59E0B",fontWeight:700,flexShrink:0}}>→</span>
+          <p style={{color:"#E2E8F0",fontSize:13}}>{item}</p>
+        </div>
+      ))}
+    </div>
+  );
+  if(section.type==="example") return(
+    <div style={{background:"rgba(16,185,129,0.07)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:12,padding:"12px 14px",marginBottom:12}}>
+      <p style={{color:"#10B981",fontSize:11,marginBottom:5,textTransform:"uppercase",letterSpacing:1}}>📝 {section.title}</p>
+      <pre style={{...mono,color:"#E2E8F0",fontSize:13,whiteSpace:"pre-wrap"}}>{section.content}</pre>
+    </div>
+  );
+  if(section.type==="mnemonic") return(
+    <div style={{background:"rgba(249,115,22,0.08)",border:"1px solid rgba(249,115,22,0.2)",borderRadius:12,padding:"12px 14px",marginBottom:12}}>
+      <p style={{color:"#F97316",fontSize:11,marginBottom:5,textTransform:"uppercase",letterSpacing:1}}>💡 Memory Trick</p>
+      <p style={{color:"#E2E8F0",fontSize:13,fontStyle:"italic"}}>{section.content}</p>
+    </div>
+  );
+  if(section.type==="color-table") return(
+    <div style={{marginBottom:12}}>
+      <p style={{color:"#64748B",fontSize:11,marginBottom:6,textTransform:"uppercase",letterSpacing:1}}>{section.title}</p>
+      <div style={{borderRadius:10,overflow:"hidden",border:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{display:"grid",gridTemplateColumns:"24px 1fr 50px 50px 50px",background:"rgba(255,255,255,0.07)",padding:"7px 10px"}}>
+          {["","Color","Digit","Mult.","Tol."].map((h,i)=><span key={i} style={{color:"#94A3B8",fontSize:11,fontWeight:600}}>{h}</span>)}
+        </div>
+        {section.rows.map((row,i)=>(
+          <div key={i} style={{display:"grid",gridTemplateColumns:"24px 1fr 50px 50px 50px",alignItems:"center",padding:"6px 10px",background:i%2===0?"rgba(255,255,255,0.02)":"transparent",borderTop:"1px solid rgba(255,255,255,0.05)"}}>
+            <div style={{width:14,height:14,borderRadius:3,background:row.color,border:row.label==="White"?"1px solid rgba(255,255,255,0.3)":"none"}}/>
+            <span style={{color:"#E2E8F0",fontSize:13}}>{row.label}</span>
+            <span style={{fontFamily:"'Share Tech Mono',monospace",color:"#F1F5F9",fontSize:13}}>{row.value}</span>
+            <span style={{color:"#94A3B8",fontSize:12}}>{row.mult}</span>
+            <span style={{color:"#94A3B8",fontSize:12}}>{row.tol||""}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  return null;
+}
+
+function Calculator(){
+  const [vals,setVals]=useState({V:"",I:"",R:"",P:""});
+  const [result,setResult]=useState(null);
+  const [error,setError]=useState("");
+  const set=(k,v)=>setVals(p=>({...p,[k]:v}));
+  const solve=()=>{
+    setError("");setResult(null);
+    const n={};
+    for(const k of["V","I","R","P"]){if(vals[k]!==""){const p=parseFloat(vals[k]);if(isNaN(p)||p<0){setError("Enter valid positive numbers.");return;}n[k]=p;}}
+    if(Object.keys(n).length<2){setError("Enter at least 2 known values.");return;}
+    let{V,I,R,P}=n;
+    if(V!==undefined&&I!==undefined){R=R??V/I;P=P??V*I;}
+    else if(V!==undefined&&R!==undefined){I=I??V/R;P=P??V*V/R;}
+    else if(I!==undefined&&R!==undefined){V=V??I*R;P=P??I*I*R;}
+    else if(P!==undefined&&V!==undefined){I=I??P/V;R=R??V*V/P;}
+    else if(P!==undefined&&I!==undefined){V=V??P/I;R=R??P/(I*I);}
+    else if(P!==undefined&&R!==undefined){I=I??Math.sqrt(P/R);V=V??Math.sqrt(P*R);}
+    else{setError("Cannot solve with these two values.");return;}
+    const fmt=x=>x!==undefined?(Math.round(x*10000)/10000).toString():"—";
+    setResult({V:fmt(V),I:fmt(I),R:fmt(R),P:fmt(P)});
+  };
+  const reset=()=>{setVals({V:"",I:"",R:"",P:""});setResult(null);setError("");};
+  return(
+    <div style={{background:"rgba(255,255,255,0.04)",borderRadius:14,padding:18,marginTop:8}}>
+      <p style={{color:"#94A3B8",fontSize:12,marginBottom:12}}>Enter any 2 known values — the rest will be calculated.</p>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+        {[["V","Voltage","V"],["I","Current","A"],["R","Resistance","Ω"],["P","Power","W"]].map(([k,label,unit])=>(
+          <div key={k}>
+            <label style={{color:"#94A3B8",fontSize:11,display:"block",marginBottom:3}}>{label}</label>
+            <div style={{display:"flex",alignItems:"center",background:"rgba(255,255,255,0.06)",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)"}}>
+              <input type="number" value={vals[k]} onChange={e=>set(k,e.target.value)} placeholder="?" style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#F1F5F9",padding:"9px 10px",fontSize:15}}/>
+              <span style={{color:"#64748B",fontSize:11,paddingRight:8}}>{unit}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:8,marginBottom:12}}>
+        <button onClick={solve} style={{flex:1,background:"#F59E0B",color:"#000",border:"none",borderRadius:8,padding:"10px 0",fontWeight:700,fontSize:14,cursor:"pointer"}}>Calculate ⚡</button>
+        <button onClick={reset} style={{background:"rgba(255,255,255,0.08)",color:"#94A3B8",border:"none",borderRadius:8,padding:"10px 14px",cursor:"pointer"}}>Reset</button>
+      </div>
+      {error&&<p style={{color:"#EF4444",fontSize:12,marginBottom:10}}>⚠️ {error}</p>}
+      {result&&(
+        <div style={{background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:12,padding:14}}>
+          <p style={{color:"#F59E0B",fontWeight:700,marginBottom:10,fontSize:12}}>RESULTS</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            {[["V","Voltage","V"],["I","Current","A"],["R","Resistance","Ω"],["P","Power","W"]].map(([k,label,unit])=>(
+              <div key={k} style={{background:"rgba(255,255,255,0.05)",borderRadius:8,padding:"8px 12px"}}>
+                <div style={{color:"#64748B",fontSize:11,marginBottom:2}}>{label}</div>
+                <div style={{color:"#F1F5F9",fontSize:17,fontWeight:700}}>{result[k]} <span style={{fontSize:11,color:"#94A3B8"}}>{unit}</span></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Quiz(){
+  const questions=[
+    {q:"What is Ohm's Law?",options:["V = I × R","V = I + R","V = I / R","V = I - R"],ans:0},
+    {q:"In a series circuit, what stays the same?",options:["Voltage","Current","Resistance","Power"],ans:1},
+    {q:"In a parallel circuit, what stays the same?",options:["Current","Resistance","Voltage","Power"],ans:2},
+    {q:"What unit measures electrical resistance?",options:["Volt","Ampere","Watt","Ohm"],ans:3},
+    {q:"What does the 'Brown' band on a resistor represent?",options:["0","1","2","3"],ans:1},
+    {q:"Which current level can cause ventricular fibrillation?",options:["1 mA","5 mA","50 mA","1 A"],ans:3},
+    {q:"What is the formula for electrical power?",options:["P = V / I","P = V + I","P = V × I","P = V - I"],ans:2},
+    {q:"What frequency is used for mains power in the US?",options:["50 Hz","60 Hz","100 Hz","120 Hz"],ans:1},
+  ];
+  const [current,setCurrent]=useState(0);
+  const [selected,setSelected]=useState(null);
+  const [score,setScore]=useState(0);
+  const [done,setDone]=useState(false);
+  const choose=(i)=>{
+    if(selected!==null)return;
+    setSelected(i);
+    if(i===questions[current].ans)setScore(s=>s+1);
+  };
+  const next=()=>{
+    if(current+1>=questions.length){setDone(true);}
+    else{setCurrent(c=>c+1);setSelected(null);}
+  };
+  const restart=()=>{setCurrent(0);setSelected(null);setScore(0);setDone(false);};
+  if(done) return(
+    <div style={{textAlign:"center",padding:"30px 0"}}>
+      <div style={{fontSize:48,marginBottom:12}}>{score>=6?"🎉":"📚"}</div>
+      <p style={{fontSize:22,fontWeight:800,marginBottom:6}}>Quiz Complete!</p>
+      <p style={{color:"#94A3B8",marginBottom:4}}>You scored</p>
+      <p style={{fontSize:40,fontWeight:800,color:score>=6?"#10B981":"#F59E0B"}}>{score}/{questions.length}</p>
+      <p style={{color:"#64748B",marginBottom:20,fontSize:13}}>{score>=6?"Great job!":"Keep studying!"}</p>
+      <button onClick={restart} style={{background:"#F59E0B",color:"#000",border:"none",borderRadius:10,padding:"12px 28px",fontWeight:700,fontSize:15,cursor:"pointer"}}>Try Again</button>
+    </div>
+  );
+  const q=questions[current];
+  return(
+    <div style={{padding:"8px 0"}}>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:16}}>
+        <span style={{color:"#64748B",fontSize:13}}>Question {current+1}/{questions.length}</span>
+        <span style={{color:"#F59E0B",fontWeight:700}}>Score: {score}</span>
+      </div>
+      <div style={{background:"rgba(255,255,255,0.05)",borderRadius:12,padding:16,marginBottom:16}}>
+        <p style={{fontSize:16,fontWeight:600,lineHeight:1.5}}>{q.q}</p>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+        {q.options.map((opt,i)=>{
+          let bg="rgba(255,255,255,0.04)";let border="1px solid rgba(255,255,255,0.08)";let color="#E2E8F0";
+          if(selected!==null){
+            if(i===q.ans){bg="rgba(16,185,129,0.15)";border="1px solid #10B981";color="#10B981";}
+            else if(i===selected&&i!==q.ans){bg="rgba(239,68,68,0.15)";border="1px solid #EF4444";color="#EF4444";}
+          }
+          return(
+            <button key={i} onClick={()=>choose(i)} style={{background:bg,border,borderRadius:10,padding:"12px 14px",color,textAlign:"left",fontSize:14,cursor:"pointer",fontFamily:"'Barlow',sans-serif"}}>
+              {String.fromCharCode(65+i)}. {opt}
+            </button>
+          );
+        })}
+      </div>
+      {selected!==null&&(
+        <button onClick={next} style={{width:"100%",background:"#F59E0B",color:"#000",border:"none",borderRadius:10,padding:"12px 0",fontWeight:700,fontSize:15,cursor:"pointer"}}>
+          {current+1>=questions.length?"See Results →":"Next Question →"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function App(){
+  const [activeId,setActiveId]=useState("ohms");
+  const [showCalc,setShowCalc]=useState(false);
+  const [showQuiz,setShowQuiz]=useState(false);
+  const [search,setSearch]=useState("");
+  const active=categories.find(c=>c.id===activeId);
+  const filtered=search.trim()?categories.filter(c=>c.title.toLowerCase().includes(search.toLowerCase())||c.sections.some(s=>(s.title||"").toLowerCase().includes(search.toLowerCase())||(s.content||"").toLowerCase().includes(search.toLowerCase())||(s.items||[]).some(i=>i.toLowerCase().includes(search.toLowerCase())))):categories;
+  return(
+    <div style={{minHeight:"100vh",background:"#0B1120"}}>
+      <div style={{background:"linear-gradient(135deg,#0F1E3C,#0B1120)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"18px 16px 14px"}}>
+        <div style={{maxWidth:680,margin:"0 auto"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+            <div style={{width:34,height:34,background:"#F59E0B",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>⚡</div>
+            <div>
+              <h1 style={{fontSize:20,fontWeight:800,letterSpacing:"-0.5px"}}>Electrical Handbook</h1>
+              <p style={{color:"#64748B",fontSize:11}}>Beginner Reference & Formulas</p>
+            </div>
+          </div>
+          <div style={{marginTop:14,display:"flex",alignItems:"center",background:"rgba(255,255,255,0.06)",borderRadius:10,padding:"0 12px",border:"1px solid rgba(255,255,255,0.09)"}}>
+            <span style={{color:"#64748B",marginRight:8}}>🔍</span>
+            <input type="text" placeholder="Search topics..." value={search} onChange={e=>setSearch(e.target.value)} style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#F1F5F9",padding:"11px 0",fontSize:14}}/>
+            {search&&<button onClick={()=>setSearch("")} style={{color:"#64748B",background:"none",border:"none",cursor:"pointer",fontSize:18}}>×</button>}
+          </div>
+        </div>
+      </div>
+      <div style={{maxWidth:680,margin:"0 auto",padding:"0 0 40px"}}>
+        <div style={{display:"flex",gap:8,padding:"12px 14px 0"}}>
+          <div onClick={()=>{setShowCalc(v=>!v);setShowQuiz(false);}} style={{flex:1,background:showCalc?"rgba(245,158,11,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${showCalc?"rgba(245,158,11,0.4)":"rgba(255,255,255,0.08)"}`,borderRadius:12,padding:"12px 14px",cursor:"pointer"}}>
+            <p style={{color:"#F59E0B",fontWeight:700,fontSize:14}}>⚡ Calculator</p>
+            <p style={{color:"#64748B",fontSize:11,marginTop:2}}>Ohm's Law solver</p>
+          </div>
+          <div onClick={()=>{setShowQuiz(v=>!v);setShowCalc(false);}} style={{flex:1,background:showQuiz?"rgba(16,185,129,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${showQuiz?"rgba(16,185,129,0.4)":"rgba(255,255,255,0.08)"}`,borderRadius:12,padding:"12px 14px",cursor:"pointer"}}>
+            <p style={{color:"#10B981",fontWeight:700,fontSize:14}}>🧠 Quiz Mode</p>
+            <p style={{color:"#64748B",fontSize:11,marginTop:2}}>Test your knowledge</p>
+          </div>
+        </div>
+        {showCalc&&<div style={{padding:"0 14px"}}><Calculator/></div>}
+        {showQuiz&&<div style={{padding:"0 14px",marginTop:12,background:"rgba(255,255,255,0.03)",borderRadius:14,margin:"8px 14px 0"}}><Quiz/></div>}
+        <div style={{overflowX:"auto",padding:"12px 14px 0"}}>
+          <div style={{display:"flex",gap:6,width:"max-content"}}>
+            {(search?filtered:categories).map(cat=>(
+              <button key={cat.id} onClick={()=>{setActiveId(cat.id);setSearch("");}} style={{background:activeId===cat.id?cat.color:"rgba(255,255,255,0.05)",color:activeId===cat.id?"#000":"#94A3B8",border:"none",borderRadius:8,padding:"7px 12px",fontWeight:activeId===cat.id?700:500,fontSize:12,cursor:"pointer",whiteSpace:"nowrap",fontFamily:"'Barlow',sans-serif"}}>
+                {cat.icon} {cat.title}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{padding:"12px 14px 0"}}>
+          {(search?filtered:[active]).map(cat=>cat&&(
+            <div key={cat.id}>
+              {search&&<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,marginTop:6}}><div style={{width:26,height:26,background:cat.color,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>{cat.icon}</div><h2 style={{fontSize:17,fontWeight:700}}>{cat.title}</h2></div>}
+              {cat.sections.map((section,i)=><Section key={i} section={section}/>)}
+              {search&&<div style={{height:1,background:"rgba(255,255,255,0.06)",margin:"16px 0"}}/>}
+            </div>
+          ))}
+          {search&&filtered.length===0&&<div style={{textAlign:"center",padding:"40px 0",color:"#64748B"}}><p style={{fontSize:32}}>🔍</p><p>No results found</p></div>}
+        </div>
+        <p style={{textAlign:"center",color:"#334155",fontSize:11,marginTop:28}}>⚡ Electrical Handbook · Student Reference</p>
+      </div>
+    </div>
+  );
+}
+ReactDOM.render(<App/>,document.getElementById("root"));
+</script>
+</body>
+</html>
